@@ -2,9 +2,9 @@ const { Pool } = require('pg');
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false // Required for Railway PostgreSQL
-    } : false,
+    ssl: {
+        rejectUnauthorized: false // Allow self-signed certs (common for Railway)
+    },
     max: 20, // Maximum number of clients in the pool
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,

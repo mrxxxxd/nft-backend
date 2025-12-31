@@ -1,25 +1,25 @@
+require('dotenv').config();
 const pool = require('./config/database'); // Add at top with other requires
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-require('dotenv').config();
 
 const app = express();
 
 // ========== MIDDLEWARE ==========
 app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
 }));
 
 const corsOptions = {
-    origin: process.env.FRONTEND_URL || [
-        'http://localhost:3000',
-        'https://nft-frontend-production.up.railway.app'
-    ],
-    credentials: true,
-    optionsSuccessStatus: 200
+  origin: process.env.FRONTEND_URL || [
+    'http://localhost:3000',
+    'https://nft-frontend-production.up.railway.app'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -27,17 +27,20 @@ app.use(morgan('combined'));
 
 // ========== HEALTH CHECK (REQUIRED FOR RAILWAY) ==========
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        service: 'NFT Shop API'
-    });
+  res.json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    service: 'NFT Shop API'
+  });
 });
 
 // ========== BASIC API ROUTES ==========
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/auth', authRoutes);
+
 // User routes (to be expanded)
 app.get('/api/users', (req, res) => {
-    res.json([{ id: 1, username: 'testuser', email: 'test@example.com' }]);
+  res.json([{ id: 1, username: 'testuser', email: 'test@example.com' }]);
 });
 
 // NEW CODE (DATABASE-POWERED) - PASTE THIS:
@@ -50,7 +53,7 @@ app.get('/api/nfts', async (req, res) => {
       WHERE nfts.is_listed = true
       ORDER BY nfts.created_at DESC
     `);
-    
+
     // Format for frontend
     const formattedNFTs = result.rows.map(nft => ({
       id: nft.id,
@@ -61,7 +64,7 @@ app.get('/api/nfts', async (req, res) => {
       category: nft.category,
       creator: nft.creator_name
     }));
-    
+
     res.json(formattedNFTs);
   } catch (error) {
     console.error('Database error:', error);
@@ -70,21 +73,21 @@ app.get('/api/nfts', async (req, res) => {
 });
 // ========== 404 HANDLER ==========
 app.use('*', (req, res) => {
-    res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: 'Route not found' });
 });
 
 // ========== ERROR HANDLER ==========
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ 
-        message: 'Something went wrong!',
-        ...(process.env.NODE_ENV === 'development' && { error: err.message })
-    });
+  console.error(err.stack);
+  res.status(500).json({
+    message: 'Something went wrong!',
+    ...(process.env.NODE_ENV === 'development' && { error: err.message })
+  });
 });
 
 // ========== START SERVER ==========
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ NFT Shop Backend running on port ${PORT}`);
-    console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
+  console.log(`✅ NFT Shop Backend running on port ${PORT}`);
+  console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
 });
