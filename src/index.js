@@ -1,3 +1,4 @@
+const pool = require('./config/database'); // Add at top with other requires
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -39,43 +40,34 @@ app.get('/api/users', (req, res) => {
     res.json([{ id: 1, username: 'testuser', email: 'test@example.com' }]);
 });
 
-// NFT routes
-app.get('/api/nfts', (req, res) => {
-    res.json([
-        { id: 1, name: 'Cyber Punk #1', price: 0.5, image: 'https://placehold.co/400x400' },
-        { id: 2, name: 'Digital Dream', price: 0.8, image: 'https://placehold.co/400x400' },
-        { id: 3, name: 'Crypto Alien', price: 1.2, image: 'https://placehold.co/400x400' }
-    ]);
+// NEW CODE (DATABASE-POWERED) - PASTE THIS:
+app.get('/api/nfts', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT nfts.*, users.username as creator_name 
+      FROM nfts 
+      LEFT JOIN users ON nfts.creator_id = users.id 
+      WHERE nfts.is_listed = true
+      ORDER BY nfts.created_at DESC
+    `);
+    
+    // Format for frontend
+    const formattedNFTs = result.rows.map(nft => ({
+      id: nft.id,
+      name: nft.name,
+      price: parseFloat(nft.price),
+      image: nft.image_url,
+      description: nft.description,
+      category: nft.category,
+      creator: nft.creator_name
+    }));
+    
+    res.json(formattedNFTs);
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ message: 'Failed to fetch NFTs' });
+  }
 });
-
-// === DEBUG ROUTE - TEMPORARY ===
-app.get('/api/debug-routes', (req, res) => {
-  // This function extracts all registered routes
-  const routes = [];
-  app._router.stack.forEach((middleware) => {
-    if (middleware.route) { // routes registered directly on the app
-      routes.push({
-        path: middleware.route.path,
-        methods: Object.keys(middleware.route.methods)
-      });
-    } else if (middleware.name === 'router') { // router middleware
-      middleware.handle.stack.forEach((handler) => {
-        if (handler.route) {
-          routes.push({
-            path: handler.route.path,
-            methods: Object.keys(handler.route.methods)
-          });
-        }
-      });
-    }
-  });
-  res.json({ 
-    message: 'Current registered routes',
-    allRoutes: routes,
-    nftRouteFound: routes.some(r => r.path === '/api/nfts')
-  });
-});
-// === END DEBUG ===
 // ========== 404 HANDLER ==========
 app.use('*', (req, res) => {
     res.status(404).json({ message: 'Route not found' });
