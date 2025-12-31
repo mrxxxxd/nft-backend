@@ -10,7 +10,6 @@ restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 10
 
 [variables]
-PORT = "5000"
 NODE_ENV = "production"
 JWT_SECRET = "{{.Secret.JWT_SECRET}}"
 DATABASE_URL = "{{.Env.DATABASE_URL}}"
