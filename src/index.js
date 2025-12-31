@@ -43,34 +43,9 @@ app.get('/api/users', (req, res) => {
   res.json([{ id: 1, username: 'testuser', email: 'test@example.com' }]);
 });
 
-// NEW CODE (DATABASE-POWERED) - PASTE THIS:
-app.get('/api/nfts', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT nfts.*, users.username as creator_name 
-      FROM nfts 
-      LEFT JOIN users ON nfts.creator_id = users.id 
-      WHERE nfts.is_listed = true
-      ORDER BY nfts.created_at DESC
-    `);
-
-    // Format for frontend
-    const formattedNFTs = result.rows.map(nft => ({
-      id: nft.id,
-      name: nft.name,
-      price: parseFloat(nft.price),
-      image: nft.image_url,
-      description: nft.description,
-      category: nft.category,
-      creator: nft.creator_name
-    }));
-
-    res.json(formattedNFTs);
-  } catch (error) {
-    console.error('Database error:', error);
-    res.status(500).json({ message: 'Failed to fetch NFTs' });
-  }
-});
+// ========== NFT ROUTES ==========
+const nftRoutes = require('./routes/nftRoutes');
+app.use('/api/nfts', nftRoutes);
 // ========== 404 HANDLER ==========
 app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
