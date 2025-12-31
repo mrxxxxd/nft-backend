@@ -48,6 +48,34 @@ app.get('/api/nfts', (req, res) => {
     ]);
 });
 
+// === DEBUG ROUTE - TEMPORARY ===
+app.get('/api/debug-routes', (req, res) => {
+  // This function extracts all registered routes
+  const routes = [];
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) { // routes registered directly on the app
+      routes.push({
+        path: middleware.route.path,
+        methods: Object.keys(middleware.route.methods)
+      });
+    } else if (middleware.name === 'router') { // router middleware
+      middleware.handle.stack.forEach((handler) => {
+        if (handler.route) {
+          routes.push({
+            path: handler.route.path,
+            methods: Object.keys(handler.route.methods)
+          });
+        }
+      });
+    }
+  });
+  res.json({ 
+    message: 'Current registered routes',
+    allRoutes: routes,
+    nftRouteFound: routes.some(r => r.path === '/api/nfts')
+  });
+});
+// === END DEBUG ===
 // ========== 404 HANDLER ==========
 app.use('*', (req, res) => {
     res.status(404).json({ message: 'Route not found' });
