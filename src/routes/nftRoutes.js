@@ -18,14 +18,16 @@ router.get('/:id', nftController.getNFT);
 // @route   POST api/nfts
 // @desc    Create a new NFT
 // @access  Private (Admin)
+const upload = require('../middleware/uploadMiddleware');
+
 router.post(
     '/',
     [
         auth, // First check login
         admin, // Then check role
+        upload.single('image'),
         check('name', 'Name is required').not().isEmpty(),
-        check('price', 'Price must be a number').isNumeric(),
-        check('image_url', 'Image URL is required').not().isEmpty()
+        check('price', 'Price must be a number').isNumeric()
     ],
     nftController.createNFT
 );

@@ -73,7 +73,12 @@ exports.createNFT = async (req, res) => {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name, price, image_url, description, category } = req.body;
+    const image_url = req.file ? req.file.path : req.body.image_url;
+    if (!image_url) {
+        return res.status(400).json({ message: 'Image file is required' });
+    }
+
+    const { name, price, description, category } = req.body;
     const creator_id = req.user.id; // Admin is creating usage
 
     try {
