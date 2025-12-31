@@ -31,6 +31,41 @@ exports.getAllNFTs = async (req, res) => {
     }
 };
 
+// Get Single NFT by ID (Public)
+exports.getNFT = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT nfts.*, users.username as creator_name 
+            FROM nfts 
+            LEFT JOIN users ON nfts.creator_id = users.id 
+            WHERE nfts.id = $1
+        `, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'NFT not found' });
+        }
+
+        const nft = result.rows[0];
+        const formattedNFT = {
+            id: nft.id,
+            name: nft.name,
+            price: parseFloat(nft.price),
+            image: nft.image_url,
+            description: nft.description,
+            category: nft.category,
+            creator: nft.creator_name,
+            creator_id: nft.creator_id,
+            is_listed: nft.is_listed // crucial for admin editing
+        };
+
+        res.json(formattedNFT);
+    } catch (error) {
+        console.error('Get NFT error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 // Create NFT (Admin Only)
 exports.createNFT = async (req, res) => {
     const errors = validationResult(req);

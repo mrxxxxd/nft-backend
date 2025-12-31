@@ -10,6 +10,11 @@ const admin = require('../middleware/adminMiddleware');
 // @access  Public
 router.get('/', nftController.getAllNFTs);
 
+// @route   GET api/nfts/:id
+// @desc    Get single NFT
+// @access  Public
+router.get('/:id', nftController.getNFT);
+
 // @route   POST api/nfts
 // @desc    Create a new NFT
 // @access  Private (Admin)
