@@ -15,7 +15,7 @@ app.use(helmet({
 const corsOptions = {
     origin: process.env.FRONTEND_URL || [
         'http://localhost:3000',
-        'nft-frontend-production.up.railway.app'
+        'https://nft-frontend-production.up.railway.app'
     ],
     credentials: true,
     optionsSuccessStatus: 200
